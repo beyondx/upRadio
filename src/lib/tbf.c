@@ -65,7 +65,7 @@ void module_load(void)
 
 void module_unload(void)
 {
-	pthread_cancle(tid_timer);
+	pthread_cancel(tid_timer);
 
 	pthread_join(tid_timer, NULL);
 }
@@ -77,7 +77,7 @@ struct tbf_st *tbf_init(int cps, int burst)
 
 	pthread_once(&once_control, module_load);
 	
-	me = (struct btf_st *)malloc(*me);
+	me = (struct tbf_st *)malloc(sizeof(*me));
 	
 	if (me == NULL) {
 		syslog(LOG_ERR, "malloc failed: %s", strerror(errno));
@@ -90,7 +90,7 @@ struct tbf_st *tbf_init(int cps, int burst)
 	//增加多线程互斥锁,避免不同线程同时执行get_index导致下标获取重复
 	pthread_mutex_lock(&tbf_mutex);	
 	//临界区域
-	int index = get_index(atbf);
+	int index = get_index();
 	if (index == -1) {
 		syslog(LOG_ERR, "Out of boud of array atbf");
 		pthread_mutex_unlock(&tbf_mutex);
@@ -134,13 +134,31 @@ int min(int a, int b)
 }
 
 
-int tbf_get_token(struct tbf_st *ptbf, int n)
+int tbf_get_token(struct tbf_st *ptbf)
 {
 	pthread_mutex_lock(&ptbf->mutex);
 
 	if (ptbf->tokens <= 0) {
 		//阻塞直到有更多令牌
-		pthread_cond_wait(&ptbf->cond);
+		pthread_cond_wait(&ptbf->cond, &ptbf->mutex);
+	}
+	//取两者的最小值	
+	int token = min(ptbf->tokens, ptbf->cps);
+	//桶中令牌数,减去指定请求数
+	ptbf->tokens -= token;
+
+	pthread_mutex_unlock(&ptbf->mutex);
+
+	return token;
+}
+
+int tbf_get_token2(struct tbf_st *ptbf, int n)
+{
+	pthread_mutex_lock(&ptbf->mutex);
+
+	if (ptbf->tokens <= 0) {
+		//阻塞直到有更多令牌
+		pthread_cond_wait(&ptbf->cond, &ptbf->mutex);
 	}
 	//取两者的最小值	
 	int token = min(ptbf->tokens, n);
@@ -149,9 +167,8 @@ int tbf_get_token(struct tbf_st *ptbf, int n)
 
 	pthread_mutex_unlock(&ptbf->mutex);
 
-	return 0;
+	return token;
 }
-
 int tbf_return_token(struct tbf_st *ptbf, int n)
 {
 	pthread_mutex_lock(&ptbf->mutex);
@@ -167,5 +184,5 @@ int tbf_return_token(struct tbf_st *ptbf, int n)
 
 	pthread_mutex_unlock(&ptbf->mutex);
 
-	return 0;
+	return ptbf->tokens;
 }

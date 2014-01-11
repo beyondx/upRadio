@@ -19,7 +19,7 @@
 struct srv_conf_st  srv_cfg =  {
 	.snd_port = DEFAULT_SND_PORT,
 	.mgroup   = DEFAULT_MGROUP,
-	.path     =  DEFAULT_PATH,
+	.media_path     =  DEFAULT_MEDIA_PATH,
 	.run_daemon = DEFAULT_RUN_DAEMON,
 };
 

@@ -189,6 +189,22 @@ int main(int argc, char *argv[])
 	}
 	#endif
 	printf("your chose chanel:%d\n", chose_id);
+	
+	int pipe_fd[2];
+
+	pipe(pipe_fd);
+
+	pid_t pid = fork();
+
+	if (pid == 0) {
+		close(pipe_fd[1]);
+		dup2(pipe_fd[0], STDIN_FILENO);
+		close(pipe_fd[0]);
+
+		execlp("mpg123", "mpg123", "-q", "-", NULL);
+		exit(0);
+	}
+
 	/*收到指定频道数据*/
 	while (1) {
 		/*收包*/
@@ -217,25 +233,10 @@ int main(int argc, char *argv[])
 		#endif
 		DEBUG("(%d)%s\n", n, (char *)(pmesg->data));
 #if 1
-			int pipe_fd[2];
-
-			pipe(pipe_fd);
-
-			pid_t pid = fork();
-			
-			if (pid == 0) {
-				close(pipe_fd[1]);
-				dup2(pipe_fd[0], STDIN_FILENO);
-				close(pipe_fd[0]);
-				
-				execlp("mpg123", "mpg123", "-q", "-", NULL);
-				exit(0);
-			}
-
-			close(pipe_fd[0]);
-			//dup2(pipe_fd[1], STDOUT_FILENO);
-			write(STDOUT_FILENO, pmesg->data, n - 1);		
-	/*关闭*/
+		close(pipe_fd[0]);
+		dup2(pipe_fd[1], STDOUT_FILENO);
+		write(STDOUT_FILENO, pmesg->data, n - 1);		
+		/*关闭*/
 #endif
 	}
 	wait(NULL);

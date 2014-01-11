@@ -8,6 +8,8 @@
 #include <strings.h>
 #include <arpa/inet.h>
 #include <net/if.h>
+#include <fcntl.h>
+#include "tbf.h"
 
 int main()
 {
@@ -74,9 +76,10 @@ int main()
 		sleep(1);	
 	}
 
-	sleep(5);
+	//sleep(5);
 
 	//4. 发出指定数据给客户端组播组
+	#if 0
 	char buf[] = "hello, i am test server";
 	struct  mesg_info_st *pmesg = (struct mesg_info_st *)malloc(MAX_PACK_SIZE);
 	pmesg->chn_id = 2;
@@ -86,7 +89,48 @@ int main()
 		DEBUG("send(%d)%s\n", n, (char *)pmesg);
 		sleep(1);	
 	}
- 
+ 	#endif
+	struct  mesg_info_st *pmesg = (struct mesg_info_st *)malloc(MAX_PACK_SIZE);
+	pmesg->chn_id = 2;
+	DEBUG("");
+	int fd = open("../../media_dir/A1/1.mp3", O_RDONLY);
+	if (fd < 0) {
+		perror("open");
+		exit(-1);
+	}	
+	#define BUF_SIZE 10240
+	char buf[BUF_SIZE] = {0};
+	int len, pos, ret;
+	struct tbf_st *ptbf = tbf_init(65536/8, (65536 / 8) * 10);
+	DEBUG("");
+	while (1) {
+		n = read(fd, buf, BUF_SIZE);
+                if (n < 0) {
+                        perror("read");
+                        break;
+                }else if (n == 0) {
+                        printf("endof file\n");
+                        break;
+                }
+                pos = 0;
+		//BUG FIX: 不能使用tbf_get_token(ptbf)恒定量的方式组包，发生越界造成段错误
+                while (n > 0) {
+			//取cps和n中的最小值，发包
+                        len = tbf_get_token2(ptbf, n);
+			memcpy(pmesg->data, buf + pos, len);
+                        if (len < 0) {
+                                perror("memcpy");
+                                goto out;
+                        }
+			ret = sendto(sock_fd, pmesg, len + 1, 0, (const struct sockaddr *)&r_addr, addr_len);
+			printf("send:%d\n", ret);
+                        pos += len;
+                        n -= len;
+                }
+        }
+out:
+        close(fd);
+        tbf_destroy(ptbf);
 	
 	//5. 结束
 	close(sock_fd);

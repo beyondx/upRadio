@@ -1,1 +1,4 @@
 *.dSYM/
+.*.swp
+.*.swo
+.*.tmp
