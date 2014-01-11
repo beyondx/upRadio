@@ -6,9 +6,12 @@
 #include <strings.h>
 #include "client_conf.h"
 #include <arpa/inet.h>
+#include <netinet/in.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <net/if.h>
+#include <fcntl.h>
+#include <sys/stat.h>
 
 static struct client_conf_st  cli_conf;
 /*
@@ -113,10 +116,20 @@ int client_init(int argc, char *const argv[])
 
 int show_chn_list(const struct  chnlist_info_st *plist, size_t pack_size)
 {
-	//struct chnlist_entry_st *pentry = (struct chnlist_entry_st *)
-	//			((chnid_t *)plist + 1);
+	struct chnlist_entry_st *pentry = 
+		(struct chnlist_entry_st *)(plist->entry);
 	
-	DEBUG("%s\n", (char *)plist);
+	uint16_t len = 0; 
+	printf("----chn_list_info-----\n");
+	for(; pentry < (struct chnlist_entry_st *)((char *)plist + pack_size);) {
+		len = ntohs(pentry->len);
+		printf("chnid:%d,chn_len:%hu,chn_desc:%s\n",
+			pentry->chn_id, ntohs(pentry->len),
+			pentry->desc);
+		pentry = (struct chnlist_entry_st *)
+				((char *)pentry + len + 3);
+	}
+	printf("----chn_list_info-----\n");
 	return 0;
 }
 
@@ -125,12 +138,17 @@ int main(int argc, char *argv[])
 {
 	/*初始化*/
 	int sock_fd, n;
-	struct sockaddr r_addr;
+	struct sockaddr_in r_addr, srv_addr;
 	socklen_t addr_len = sizeof(r_addr);
 
 	CHK_RET_EXIT(sock_fd, client_init(argc, argv));
 
 	char buf[MAX_PACK_SIZE] = {0};
+	
+	bzero(&srv_addr, sizeof(srv_addr));
+	srv_addr.sin_family = AF_INET;
+	inet_pton(AF_INET, DEFAULT_SERVER_IP, &srv_addr.sin_addr);
+
 
 	/*拉去频道列表，选择频道号*/
 	bzero(&r_addr, addr_len);
@@ -138,7 +156,7 @@ int main(int argc, char *argv[])
 	while (1) {
 		/*收包*/
 		n = recvfrom(sock_fd, buf, sizeof(buf) - 1, 0, 
-			&r_addr, &addr_len);
+			(struct sockaddr *)&r_addr, &addr_len);
 		if (n < 0) {
 			if (errno == EINTR || errno == EAGAIN) {
 				continue;
@@ -146,50 +164,80 @@ int main(int argc, char *argv[])
 			perror("recvfrom");
 			break;
 		}
-		DEBUG("buf:%s\n", buf);	
-#if 0
+		//DEBUG("buf:%s\n", buf);	
+#if 1
 		struct  chnlist_info_st *plist = (struct  chnlist_info_st *)buf;
 
 		if (plist->chn_id == LIST_CHN_ID) {
 			/*展示频道信息*/
-			DEBUG("recv:chnlist_info package\n");
+			DEBUG("recv:chnlist_info package,(%d)\n", n);
 			show_chn_list(plist, n);	
 			break;
 		}
 #endif
 	}
 	
-#if 0
 	/*选择频道号*/
-
+	int chose_id = 2;
+	#if 0
+	printf("chose_id:");
+	fflush(stdout);
+	n = scanf("%d", &chose_id);
+	if (n != 1) {
+		perror("scanf");
+		exit(1);
+	}
+	#endif
+	printf("your chose chanel:%d\n", chose_id);
 	/*收到指定频道数据*/
 	while (1) {
 		/*收包*/
-
-		if (频道ID) {
+		n = recvfrom(sock_fd, buf, sizeof(buf) - 1, 0, 
+			(struct sockaddr *)&r_addr, &addr_len);
+		if (n < 0) {
+			if (errno == EINTR || errno == EAGAIN) {
+				continue;
+			}
+			perror("recvfrom");
+			break;
+		}
+		
+		struct mesg_info_st *pmesg = (struct mesg_info_st *)buf;
+		/*判断是否为指定ID的消息*/
+		if (pmesg->chn_id != chose_id) {
+			continue;
+		}
+		DEBUG("chn_id:%d\n", pmesg->chn_id);
+		#if 0
+		/*判断是否从服务器中发出的消息*/
+		if (r_addr.sin_addr.s_addr != srv_addr.sin_addr.s_addr) {
+			fprintf(stderr,"收到非发主机的组播信息,from '%s:%hu'\n", inet_ntoa(r_addr.sin_addr), ntohs(r_addr.sin_port));
+			continue;
+		}
+		#endif
+		DEBUG("(%d)%s\n", n, (char *)(pmesg->data));
+#if 1
 			int pipe_fd[2];
 
 			pipe(pipe_fd);
 
-			pid = fork();
+			pid_t pid = fork();
 			
 			if (pid == 0) {
 				close(pipe_fd[1]);
 				dup2(pipe_fd[0], STDIN_FILENO);
 				close(pipe_fd[0]);
 				
-				execlp("mpg123", "mpg123", "-", NULL);
+				execlp("mpg123", "mpg123", "-q", "-", NULL);
 				exit(0);
 			}
 
 			close(pipe_fd[0]);
-			dup2(pipe_fd[1], STDOUT_FILENO);
-			write(STDOUT_FILENO, buf, len);		
-			close(pip);
-		}
-	}
+			//dup2(pipe_fd[1], STDOUT_FILENO);
+			write(STDOUT_FILENO, pmesg->data, n - 1);		
 	/*关闭*/
 #endif
+	}
 	wait(NULL);
 
 	return 0;

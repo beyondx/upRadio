@@ -13,5 +13,9 @@ int main()
 
 	DEBUG("n = %d\n", n);
 
+	int i = 10;
+	printf("%d, %d\n", sizeof(++i), i);
+
+
 	return 0;
 }

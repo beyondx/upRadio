@@ -1,10 +1,10 @@
-TGT := client
+TGT := server
 SRCS := main.c
 CFLAGS += -Wall -D_DEBUG -g -I../include 
 DEPS := deps
-TEST := test_server
+#TEST := test_server
 
-all: $(TGT) $(TEST)
+all: $(TGT)
 
 $(TGT) : $(SRCS:%.c=%.o)
 	$(CC) $(CFLAGS) $^ -o $@
