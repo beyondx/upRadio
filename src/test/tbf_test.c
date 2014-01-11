@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "tbf.h"
+#include <tbf.h>
 #include <assert.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -22,7 +22,7 @@ int main(int argc, char *argv[])
 	char buf[BUF_SIZE] = {0};
 	
 	struct tbf_st *ptbf = tbf_init(10, 50);
-	int n, len, ret, pos;
+	int n, len, pos;
 
 	while (1) {
 		n = read(fd, buf, BUF_SIZE);
@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
 		}
 		pos = 0;
 		while (n > 0) {
-			len = write(STDOUT_FILENO, buf + pos, tbf_get_token(ptbf, 10));
+			len = write(STDOUT_FILENO, buf + pos, tbf_get_token2(ptbf, 10));
 			fflush(stdout);
 			if (len < 0) {
 				perror("write");
