@@ -1,7 +1,9 @@
 [server]
 make -C src/server
-make
+
 [client]
 make -C src/client
+#depend mpg123, please download and install by you self.
+
 [test]
 make -C src/test
