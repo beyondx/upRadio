@@ -1,1 +1,7 @@
+[server]
+make -C src/server
 make
+[client]
+make -C src/client
+[test]
+make -C src/test

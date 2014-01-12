@@ -1,2 +1,2 @@
 [ChangeLog]
-	1. test
+	1. 修复多线程编译错误

@@ -1,8 +1,8 @@
 TGT := server
-SRCS := main.c upmedia.c ../lib/tbf.c
-CFLAGS += -Wall -D_DEBUG -g -I../include -I../lib -pthread
+SRCS := main.c upmedia.c tbf.c
+CFLAGS += -Wall -D_DEBUG -g -I../include  -pthread
 DEPS := deps
-#TEST := test_server
+
 
 all: $(TGT)
 
@@ -10,9 +10,7 @@ $(TGT) : $(SRCS:%.c=%.o)
 	$(CC) $(CFLAGS) $^ -o $@
 
 %.o : %.c
-	$(CC)	$(CFLAGS) -c $<
-
-
+	$(CC) $(CFLAGS) -c $<
 
 sinclude $(DEPS)
 

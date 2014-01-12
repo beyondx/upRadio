@@ -6,7 +6,7 @@
 #include <sys/types.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <tbf.h>
+#include "tbf.h"
 
 #define  DESC_MAX_SIZE	128
 #define  AUDIO_BUF_SIZE	81920

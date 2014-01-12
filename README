@@ -1,5 +1,7 @@
-基于UDP和组播的服务器客户机demo
+基于UDP和组播的服务器客户机实例
 目的：编程练习(robbin.X beyondx123@gmail.com)
+
+注意：客户机需要依赖 mpg123播放mp3文件
 
 网络编程和多线程实例：
 
@@ -24,3 +26,5 @@
 	broadcast
 	multicast
 3.网络协议
+
+MP3文件也有播放起来不是很流畅的,建议同意选择

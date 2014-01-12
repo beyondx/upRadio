@@ -1,0 +1,4 @@
+0. 完成server_destroy, 内存泄露检测
+1. 乱序播放
+2. client for android, ios
+3. porting in python
