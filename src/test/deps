@@ -1,0 +1,4 @@
+client_test.o: client_test.c ../include/proto.h ../include/utils.h \
+  ../lib/tbf.h
+glob_test.o: glob_test.c
+tbf_test.o: tbf_test.c ../lib/tbf.h

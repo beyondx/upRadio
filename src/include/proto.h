@@ -9,8 +9,6 @@
 
 #define   DEFAULT_SERVER_IP	"192.168.0.254"
 /*存放音频文件的默认工作路径*/
-#define   DEFAULT_PATH	"../../service"
-#define   DEFAULT_RUN_DAEMON	1
 
 #define   DEFAULT_SND_PORT	"1999"
 #define   DEFAULT_RCV_PORT	"2000"
@@ -19,7 +17,7 @@
 
 #define   CHN_NUMS	20
 #define   MIN_CHN_ID	1
-#define   MAX_CHN_ID	(MIN_CHN_ID + NUM_CHNS - 1)
+#define   MAX_CHN_ID	(MIN_CHN_ID + CHN_NUMS - 1)
 
 /*专门用来发送频道列表信息的频道*/
 #define   LIST_CHN_ID	0

@@ -179,7 +179,7 @@ int main(int argc, char *argv[])
 	
 	/*选择频道号*/
 	int chose_id = 2;
-	#if 0
+	#if 1
 	printf("chose_id:");
 	fflush(stdout);
 	n = scanf("%d", &chose_id);
@@ -223,7 +223,7 @@ int main(int argc, char *argv[])
 		if (pmesg->chn_id != chose_id) {
 			continue;
 		}
-		DEBUG("chn_id:%d\n", pmesg->chn_id);
+//		DEBUG("chn_id:%d\n", pmesg->chn_id);
 		#if 0
 		/*判断是否从服务器中发出的消息*/
 		if (r_addr.sin_addr.s_addr != srv_addr.sin_addr.s_addr) {
@@ -231,7 +231,7 @@ int main(int argc, char *argv[])
 			continue;
 		}
 		#endif
-		DEBUG("(%d)%s\n", n, (char *)(pmesg->data));
+//		DEBUG("(%d)%s\n", n, (char *)(pmesg->data));
 #if 1
 		close(pipe_fd[0]);
 		dup2(pipe_fd[1], STDOUT_FILENO);

@@ -1,6 +1,6 @@
 TGT := server
-SRCS := main.c
-CFLAGS += -Wall -D_DEBUG -g -I../include 
+SRCS := main.c upmedia.c ../lib/tbf.c
+CFLAGS += -Wall -D_DEBUG -g -I../include -I../lib
 DEPS := deps
 #TEST := test_server
 
@@ -22,5 +22,5 @@ $(DEPS)	: $(SRCS)
 .PHONY: clean all
 	
 clean:
-	$(RM) *.o $(TGT) $(TEST) $(DEPS) 
-	$(RM) -rf $(TEST).dSYM
+	$(RM) *.o $(TGT)  $(DEPS) 
+	$(RM) -rf *.dSYM
