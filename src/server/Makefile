@@ -1,6 +1,6 @@
 TGT := server
 SRCS := main.c upmedia.c ../lib/tbf.c
-CFLAGS += -Wall -D_DEBUG -g -I../include -I../lib
+CFLAGS += -Wall -D_DEBUG -g -I../include -I../lib -pthread
 DEPS := deps
 #TEST := test_server
 
